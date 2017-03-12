@@ -2,32 +2,132 @@
 <html>
 	<head>
 		<meta charset=utf-8>
-		<title>testing three.js</title>
-		<style>
-			body { margin: 0; }
-			canvas { width: 100%; height: 100% }
-		</style>
+		<title>testing territory.js</title>
+		<link href="./css/bootstrap.min.css" rel="stylesheet" />
+  		<link href="./css/style.css" rel="stylesheet" />
 	</head>
 	<body>
-		<div id="main"></div>
-		<div id="container"></div>
-		<script src="js/three.js"></script>
-		<script src="js/Detector.js"></script>
+		<div id="main">
+			<div>
+				<div class="row upper">
+					<div id="terrain" class="col-md-8"></div>
+					<div id="components" class="col-md-4">
+						<h3 id="title" class="p20r">Territory & Terrain</h3>
+							<p class="aqua2 clsub"> carve out trajectories, shape settlements </p>
+							<br>
+						<h5 class="selectTitle"> Sculpt Slopes</h5>
+							<p class="aqua2 o20 und"> Mouse + Key (landform) </p>
+							<p class="o20"><span class="italP sub">click</span> + topo ; <span class="italP sub">click shift</span> - topo ; <span class="italP sub"> A  S </span>  rotate view </p>
+							<p class="aqua2 o20 und"> Mouse + Key (features) </p>
+							<p class="white o20 italP">elements available (by slope) shown above mouse</p>
+							<p class="o20"><span class="italP aqua2">R</span> + road ; <span class="italP aqua2">T</span> + town ; <span class="italP aqua2">C</span> + city ; <br>
+							<span class="italP aqua2">F</span> + forest ; <span class="italP aqua2">B</span> + bridge (start/stop)</p>
+							<br>
+						<h5 class="selectTitle"> Terrain Types, Settlement Options</h5>
+							<button class="btn btn-default m10" onClick="">show classes</button><button class="btn btn-default m10" onClick="">show white</button>
+							<div class="swatch p20">
+								<ul>
+									<li><img src="./img/mtn.png" class="sq"><p class="subtitle">sheer edges / mtns </p></li>
+									<li><img src="./img/forest.png" class="sq"><p class="subtitle">steep forests</p></li>
+									<li><img src="./img/field.png" class="sq"><p class="subtitle">rolling fields/clearings</p></li>
+									<li><img src="./img/beach.png" class="sq"><p class="subtitle">marsh & beach</p></li>
+									<li><img src="./img/submerged.png" class="sq"><p class="subtitle">submerged</p></li>
+							</div>
+						</div>
+					</div>
+				</div>
 
-		<!-- Interaction Simple
-		<script src="js/interactionsDemo.js"></script>-->
 
-		<!-- Interaction Updated for Plane manipulation-->
-		<script src="js/surfaceWorking.js"></script>
+				<div id="swatches" class="row p20 m10">
+				<div class="col-md-2 m10">
+					<h5 class="selectTitle">Load Terrain</h5>
+					<p class="aqua2 und">Optional Heightmaps</p>
+					<p class="italP subtitle"> dark = low ; contrasts = slopes </p>
+				</div>
+					<form onClick="onTerrainThumb(event)">
+						<div class="beige col-md-1 m10 text-center">
+							<input type="radio" value="../terrain/00.jpg">
+								<span class="p5">
+									<img class="r3" src="./terrain/00.jpg"/>
+									<p class="dark small">Mtn Valley</p>
+								</span>
+							</input>
+						</div>
+						<div class="beige col-md-1  m10 text-center">
+							<input type="radio" value="../terrain/01.jpg">
+								<span class="p5">
+									<img class="r3" src="./terrain/01.jpg"/>
+									<p class="dark small">River Routes</p>
+								</span>
+							</input>
+						</div>
+						<div class="beige col-md-1  m10 text-center">
+							<input type="radio" value="../terrain/02.jpg">
+								<span class="p5">
+									<img class="r3" src="./terrain/02.jpg"/>
+									<p class="dark small">Delta Edges</p>
+								</span>
+							</input>
+						</div>
+						<div class="beige col-md-1  m10 text-center">
+							<input type="radio" value="../terrain/03.jpg">
+								<span class="p5">
+									<img class="r3" src="./terrain/03.jpg"/>
+									<p class="dark small">Mtn Peaks</p>
+								</span>
+							</input>
+						</div>
+						<div class="beige col-md-1 m10 text-center">
+							<input type="radio" value="../terrain/04.jpg">
+								<span class="p5">
+									<img class="r3" src="./terrain/04.jpg"/>
+									<p class="dark small">Glacial Flats</p>
+								</span>
+							</input>
+						</div>
+						<div class="beige col-md-1 m10 text-center">
+							<input type="radio" value="" checked>
+								<span class="p5">
+									<img class="r3" src="./terrain/none.jpg"/>
+									<p class="dark small">None (noise)</p>
+								</span>
+							</input>
+						</div>
+						<div class="beige col-md-1 m10 text-center">
+							<input type="radio" value="">
+								<span class="p5">
+									<img class="r3" src="./terrain/future.jpg"/>
+									<p class="dark small">(soon) Saves</p>
+								</span>
+							</input>
+						</div>
+						<div class="beige col-md-1 m10 text-center">
+							<input type="radio" value="">
+								<span class="p5">
+									<img class="r3" src="./terrain/future.jpg"/>
+									<p class="dark small">(soon) Saves</p>
+								</span>
+							</input>
+						</div>
+					</form>
+				</div>
+			</div>
+			<div>
+				<div id="key"></div>
+				<div id="feedback"></div>
+			</div>
 
-		<!-- Terrain Simple
-		<script src="js/terrainSimple.js"></script>-->
+		</div>
 
-		<!-- Terrain Demo
-		<script src="js/controls/FirstPersonControls.js"></script>
-		<script src="js/ImprovedNoise.js"></script>
-		<script src="js/lib/stats.js"></script>
-		<script src="js/terrainDemo.js"></script>-->
+		<!-- Basics -->
+		<script src="js/lib/three.js"></script>
+
+		<!-- all dumb support files-->
+		<script src="js/components.js"></script>
+		<!-- core surface and camera-->
+		<script src="js/gameSurface.js"></script>
+		<!-- additional files, interactive inputs-->
+		<script src="js/terrainLoading.js"></script>
 
 	</body>
 </html>

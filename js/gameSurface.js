@@ -1,31 +1,37 @@
+//REMINDER OF INITIALIZE VARIABLES
+
+// var rollOverMesh, rollOverGeo, rollOverMaterial, forest;
+// var forestO, forestP, settlement, settlementP, road;
+
+// var swatch1, swatch2, swatch3, swatch4, swatch5;
+// var sH1, sH2, sH3, sH4, sH5;
+
 var container;
 var camera, scene, renderer;
 var plane, cube, edges;
 var mouse, raycaster, isShiftDown = false, isForestDown = false,  isTownDown = false, isCityDown = false;
-var rollOverMesh, rollOverGeo, rollOverMaterial, forest;
-var forestO, forestP, settlement, settlementP, road;
 var cubeGeo, cubeMaterial;
 var objects = [];
 var vertical = new THREE.Vector3( 0, 1, 0 );
+var colorS = false; //boolean for slope driven coloring
+var slopeConv = ['peak', 'mnt', 'forest', 'field', 'woods,' 'urban', 'road', 'bridge', 'shore', 'submerged']; //double check --- past builds color (urban, road, bridge, port, 'woods') leave alone, all others annotate slope
+var slopeC = { //great then [X]... then grab rgb color for face (with some string/number & Obj.keys)
+
+}
+
 
 init();
 render();
 
 function init() {
 
-	container = document.getElementById( 'container' );
-	var info = document.createElement( 'div' );
-		info.style.position = 'absolute';
-		info.style.top = '10px';
-		info.style.width = '100%';
-		info.style.textAlign = 'center';
-		info.innerHTML = '<a href="http://threejs.org" target="_blank">three.js</a><br><strong>click</strong>: add elevation, <strong>shift + click</strong>: remove elevation<br><strong>A</strong>: rotate left, <strong>S</strong>: rotate left, <strong>W</strong>: rotate 180';
-	container.appendChild( info );
+	container = document.getElementById( 'terrain' );
+
 
 
 	//perspective camera looking at scene
-	camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
-	camera.position.set( 600, 1400, 2000 ); //position A
+	camera = new THREE.PerspectiveCamera( 35, 1000 / 600, 1, 10000 );
+	camera.position.set( 600, 1400, 2200 ); //position A
 	//camera.position.set( 2200 ,1800, 600 ); //position B
 	camera.lookAt( new THREE.Vector3() ); //just looks toward origin (0,0,0);
 
@@ -42,15 +48,7 @@ function init() {
 	var waterplane = new THREE.Mesh( geometry, gwMaterial );
 	scene.add( waterplane );
 
-	//SIMPLE FRONT PLANE
-	var geometryE = new THREE.PlaneGeometry( 1600, 40);
-		geometryE.translate( 0, 0, 800 );
-	var eMaterial = new THREE.MeshPhongMaterial({ shading: THREE.FlatShading, color: 0x000000, specular: 0x111111, shininess: 10, opacity: 0.5, transparent: true
-	 });
-	var edgeplane = new THREE.Mesh( geometryE, eMaterial );
-	scene.add( edgeplane );
-
-	//OTHER OBJECT CREATION
+	//COMPONENT OBJECTS CREATION
 	forestO = createForest();
 	scene.add(forestO);
 
@@ -60,11 +58,10 @@ function init() {
 	road = createRoad();
 	scene.add(road);
 
-
-	territory = new THREE.Group();
 	//setting up the interactions for finding 'space' intersects
 	raycaster = new THREE.Raycaster();
 	mouse = new THREE.Vector2();
+
 
 	//SURFACE TO MANIPULATE
 	var geometry = new THREE.PlaneGeometry( 1600, 1600, 40, 40 );
@@ -73,7 +70,7 @@ function init() {
 			  //geometry.vertices[i].y = (Math.random()*5)+ 5; //remember y is height here!
 			  geometry.vertices[i].y = (Math.random()*2) + 20; //remember y is height here!
 			}
-
+		console.log(geometry.vertices.length);
 		geometry.computeFaceNormals();
 
 		geometry.faces.forEach( face =>{
@@ -87,7 +84,6 @@ function init() {
 	var planeMaterial = new THREE.MeshPhongMaterial({ shading: THREE.FlatShading, vertexColors: THREE.FaceColors, specular: 0x111111, shininess: 10, opacity: 0.75, side: THREE.DoubleSide,
 	 });
 
-		console.log(planeMaterial);
 	plane = new THREE.Mesh( geometry, planeMaterial );
 	scene.add( plane );
 	objects.push( plane );
@@ -104,7 +100,7 @@ function init() {
 	renderer = new THREE.WebGLRenderer( { antialias: true } );
 		renderer.setClearColor( 0x333333);
 		renderer.setPixelRatio( window.devicePixelRatio );
-		renderer.setSize( window.innerWidth, window.innerHeight );
+		renderer.setSize( 1000, 600 );
 	container.appendChild( renderer.domElement );
 
 	// listening for interactions
@@ -116,21 +112,25 @@ function init() {
 	window.addEventListener( 'resize', onWindowResize, false );
 }
 
+// ---------------- CORE FUNCTIONS AND INTERACTIONS ------------------------------------
+
 function onWindowResize() {
-	camera.aspect = window.innerWidth / window.innerHeight;
+	camera.aspect = 1000 / 600;
 	camera.updateProjectionMatrix();
-	renderer.setSize( window.innerWidth, window.innerHeight );
+	renderer.setSize( 1000 , 600 );
 }
 
 function onDocumentMouseMove( event ) {
 	event.preventDefault();
 	//screen positon of intersection
-	mouse.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
+	mouse.set( ( (event.clientX+10) / 1000 ) * 2 - 1, - ( (event.clientY+10) / 600 ) * 2 + 1 );
 	raycaster.setFromCamera( mouse, camera );
 	var intersects = raycaster.intersectObject(plane);
 
 	if (intersects.length > 0) {
 		var intersect = intersects[ 0 ];
+		event.target.style.cursor = 'crosshair';
+
 			//intersect.object.geometry.faces[intersect.faceIndex].color
 			intersect.object.geometry.faces.forEach(face => {
 				face.color.setRGB(1,1,1);
@@ -150,19 +150,26 @@ function onDocumentMouseMove( event ) {
 			road.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
 			road.position.y +=300;
 
-	}
 	render();
+	} else {
+		event.target.style.cursor = '';
+	}
+
 }
 
 function onDocumentMouseDown( event ) {
 	event.preventDefault();
 	//screen positon of intersection
-	mouse.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
+	//mouse.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
+	mouse.set( ( (event.clientX+10) / 1000 ) * 2 - 1, - ( (event.clientY+10) / 600 ) * 2 + 1 );
 	raycaster.setFromCamera( mouse, camera );
 	var intersects = raycaster.intersectObjects( objects );
 
 	if ( intersects.length > 0 ) {
 		var intersect = intersects[ 0 ];
+		event.target.style.cursor = 'crosshair';
+
+			//readout.innertext = intersect.face.normal.angleTo(vertical)*57.2958;
 		// delete cube
 		if ( isShiftDown ) {
 
@@ -174,6 +181,7 @@ function onDocumentMouseDown( event ) {
 			intersect.object.geometry.computeFaceNormals();
 
 			console.log('slope in degrees:', intersect.face.normal.angleTo(vertical)*57.2958);
+
 
 		} else if ( isForestDown ) {
 
@@ -211,6 +219,7 @@ function onDocumentMouseDown( event ) {
 		render();
 		//console.log('objects: ', objects);
 	}
+	event.target.style.cursor = '';
 }
 
 function onDocumentKeyDown( event ) {
@@ -242,95 +251,8 @@ function render() {
 
 
 function colorBySlope(face){
-	let degSlope=face.normal.angleTo(vertical)*57.2958;
+	var degSlope=face.normal.angleTo(vertical)*57.2958;
 
 
 
-}
-
-
-// MISC OBJECT CREATION
-function createForest(){
-	forest = new THREE.Group();
-		rollOverGeo = new THREE.ConeGeometry( 10, 35);
-			rollOverGeo.translate( 0, 0, 10 );
-		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0x209168, opacity: 0.95, transparent: true } );
-		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
-	forest.add( rollOverMesh );
-		rollOverGeo = new THREE.ConeGeometry( 12, 40);
-			rollOverGeo.translate( -15, 0, 3 );
-		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0x5ebb29, opacity: 0.9, transparent: true } );
-		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
-	forest.add( rollOverMesh );
-		rollOverGeo = new THREE.SphereGeometry( 8 );
-			rollOverGeo.translate( -12, 10, 25);
-		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xa7bb29, opacity: 1, transparent: true } );
-		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
-	forest.add( rollOverMesh );
-	return forest;
-}
-
-function addForest(){
-	forestP = new THREE.Group();
-		rollOverGeo = new THREE.ConeGeometry( 10, 35);
-			rollOverGeo.translate( 0, 0, 10 );
-		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0x209168, opacity: 0.95, transparent: true } );
-		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
-	forestP.add( rollOverMesh );
-		rollOverGeo = new THREE.ConeGeometry( 12, 40);
-			rollOverGeo.translate( -15, 0, 3 );
-		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0x5ebb29, opacity: 0.9, transparent: true } );
-		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
-	forestP.add( rollOverMesh );
-		rollOverGeo = new THREE.SphereGeometry( 8 );
-			rollOverGeo.translate( -12, 10, 25);
-		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xa7bb29, opacity: 1, transparent: true } );
-		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
-	forestP.add( rollOverMesh );
-	return forestP;
-}
-
-function createSettlement(){
-	settlement = new THREE.Group();
-		rollOverGeo = new THREE.BoxGeometry( 15, 20, 15);
-		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xd0442e, opacity: 0.95, transparent: true } );
-		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
-	settlement.add(rollOverMesh);
-		rollOverGeo = new THREE.BoxGeometry( 20, 12, 20);
-			rollOverGeo.translate( -22, 0, 8);
-		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xbb3d29, opacity: 0.95, transparent: true } );
-		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
-	settlement.add(rollOverMesh);
-		rollOverGeo = new THREE.BoxGeometry( 12, 20, 20);
-			rollOverGeo.translate( 20, 0, 12);
-		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xa63624, opacity: 0.95, transparent: true } );
-		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
-	settlement.add(rollOverMesh);
-		return settlement;
-}
-
-function addSettlement(){
-	settlementP = new THREE.Group();
-		rollOverGeo = new THREE.BoxGeometry( 15, 20, 15);
-		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xd0442e, opacity: 0.95, transparent: true } );
-		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
-	settlementP.add(rollOverMesh);
-		rollOverGeo = new THREE.BoxGeometry( 20, 12, 20);
-			rollOverGeo.translate( -22, 0, 8);
-		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xbb3d29, opacity: 0.95, transparent: true } );
-		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
-	settlementP.add(rollOverMesh);
-		rollOverGeo = new THREE.BoxGeometry( 12, 20, 20);
-			rollOverGeo.translate( 20, 0, 12);
-		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xa63624, opacity: 0.95, transparent: true } );
-		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
-	settlementP.add(rollOverMesh);
-		return settlementP;
-}
-
-function createRoad(){
-		rollOverGeo = new THREE.BoxGeometry( 20, 2, 20);
-		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0x696969, opacity: 0.95, transparent: true } );
-		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
-		return rollOverMesh;
 }
