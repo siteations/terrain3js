@@ -13,36 +13,18 @@ function init() {
 
 	container = document.getElementById( 'container' );
 
-	var info = document.createElement( 'div' );
-		info.style.position = 'absolute';
-		info.style.top = '10px';
-		info.style.width = '100%';
-		info.style.textAlign = 'center';
-		info.innerHTML = '<a href="http://threejs.org" target="_blank">three.js</a> - voxel painter - webgl<br><strong>click</strong>: add voxel, <strong>shift + click</strong>: remove voxel';
-	container.appendChild( info );
 
 	//perspective camera looking at scene
 	camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 10000 );
-	camera.position.set( 500, 800, 1300 );
-	camera.lookAt( new THREE.Vector3() );
+	camera.position.set( 600, 1400, 1300 );
+	camera.lookAt( new THREE.Vector3() ); //just looks toward origin (0,0,0);
 
 	scene = new THREE.Scene();
 
 //-----------------------------CREATE OBJECT AND EVOKE/RENDER IN EVENTS-------------------------------------
-	// roll-over helpers or highlights
-	rollOverGeo = new THREE.BoxGeometry( 50, 50, 50 );
-	rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xffa500, opacity: 0.25, transparent: true } );
-
-	rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
-
-	//scene.add( rollOverMesh ); //HOOVER LOCATION HELPER
-
-	// cubes
-	cubeGeo = new THREE.BoxGeometry( 50, 50, 50 );
-	cubeMaterial = new THREE.MeshPhongMaterial( { color: 0xffa500, specular: 0xe5fcff, shininess: 10, shading: THREE.FlatShading, opacity: 0.80, transparent: true } );
 
 	// grid as lines OLD UNDERLAY
-	var size = 500, step = 50;
+	var size = 500, step = 25;
 	var geometry = new THREE.Geometry();
 	for ( var i = - size; i <= size; i += step ) {
 		geometry.vertices.push( new THREE.Vector3( - size, 0, i ) );
@@ -60,10 +42,11 @@ function init() {
 	mouse = new THREE.Vector2();
 
 	//the plane geometry
-	var geometry = new THREE.PlaneGeometry( 1000, 1000, 20, 20 );
+	var geometry = new THREE.PlaneGeometry( 1000, 1000, 40, 40 );
 		geometry.rotateX( - Math.PI / 2 );
 			for (var i = 0, l = geometry.vertices.length; i < l; i++) {
-			  geometry.vertices[i].y = (Math.random()*50)+ 5; //remember y is height here!
+			  //geometry.vertices[i].y = (Math.random()*5)+ 5; //remember y is height here!
+			  geometry.vertices[i].y = (Math.random()*1) + 5; //remember y is height here!
 			}
 
 		var white = new THREE.Color(0xffffff);
@@ -76,7 +59,7 @@ function init() {
 
 		//color: 0x000000
 
-	var planeMaterial = new THREE.MeshPhongMaterial({ shading: THREE.FlatShading, vertexColors: THREE.FaceColors, specular: 0xe5fcff, shininess: 10, opacity: 0.5, side: THREE.DoubleSide
+	var planeMaterial = new THREE.MeshPhongMaterial({ shading: THREE.FlatShading, vertexColors: THREE.FaceColors, specular: 0xe5fcff, shininess: 10, opacity: 0.75, side: THREE.DoubleSide,
 	 });
 
 		console.log(planeMaterial);
@@ -102,7 +85,7 @@ function init() {
 
 	// Renderers
 	renderer = new THREE.WebGLRenderer( { antialias: true } );
-		renderer.setClearColor( 0xf0f0f0 );
+		renderer.setClearColor( 0xe4e4e4 );
 		renderer.setPixelRatio( window.devicePixelRatio );
 		renderer.setSize( window.innerWidth, window.innerHeight );
 	container.appendChild( renderer.domElement );
@@ -124,48 +107,17 @@ function onWindowResize() {
 
 function onDocumentMouseMove( event ) {
 	event.preventDefault();
-	//scene.remove( temp );
 	//screen positon of intersection
 	mouse.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
 	raycaster.setFromCamera( mouse, camera );
 	var intersects = raycaster.intersectObject(plane);
 
-	if (intersects > 0) {
-		var intersect = intersects[0];
+	if (intersects.length > 0) {
+		var intersect = intersects[ 0 ];
+			//intersect.object.geometry.faces[intersect.faceIndex].color
 
-		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xffa500, opacity: 0.5, transparent: true } );
-
-		if (plane.geometry.vertices[intersect.face.a] !== undefined && plane.geometry.vertices[intersect.face.b] !== undefined && plane.geometry.vertices[intersect.face.c] !== undefined){
-
-			var highlight = new THREE.PlaneGeometry();
-				highlight.vertices = [];
-				highlight.vertices[0]= plane.geometry.vertices[intersect.face.a];
-				highlight.vertices[1]= plane.geometry.vertices[intersect.face.b];
-				highlight.vertices[2]= plane.geometry.vertices[intersect.face.c];
-				highlight.vertices.forEach(vertex=>{
-					vertex.y += .25;
-				});
-				highlight.faces.push( new THREE.Face3( 0, 1, 2 ));
-
-			temp = new THREE.Mesh( highlight, rollOverMaterial );
-			scene.add( temp );
-			console.log(temp);
-		};
-
-		//unpack this math for showing active position... setting position of rollover, unpack w/ on-click version
-		//INITIAL IMAGES ROUTE
-		// rollOverMesh.position.copy( intersect.point ).add( intersect.face.normal );
-		// rollOverMesh.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-
-		// COLOR ROUTE . . .
-		// var orange = new THREE.Color(0xffa500);
-		// plane.geometry.faces.forEach( (face, i) =>{
-		// 	if (face.a === intersect.face.a && face.b === intersect.face.b && face.c === intersect.face.c
-		// 	    ){
-		// 		face.color = orange ;
-		// 		console.log(i);
-		// 	}
-		// });
+			intersect.face.color.setRGB(1,0.65,0);
+			intersect.object.geometry.colorsNeedUpdate = true;
 
 	}
 	render();
@@ -184,22 +136,23 @@ function onDocumentMouseDown( event ) {
 		var intersect = intersects[ 0 ];
 		// delete cube
 		if ( isShiftDown ) {
-			if ( intersect.object != plane ) {
-				scene.remove( intersect.object );
-				objects.splice( objects.indexOf( intersect.object ), 1 ); //remove that from array
-			}
-		// create cube
+
+			//lower vertices;
+			intersect.object.geometry.vertices[intersect.face.a].y -= 5;
+			intersect.object.geometry.vertices[intersect.face.b].y -= 5;
+			intersect.object.geometry.vertices[intersect.face.c].y -= 5;
+			intersect.object.geometry.verticesNeedUpdate = true;
+
 		} else {
-			var voxel = new THREE.Mesh( cubeGeo, cubeMaterial );
-			console.log('voxel positon: ', intersect.point, intersect.face.normal);
-			//unpack this math for placing new object - vector3 Math!!!!!
-			voxel.position.copy( intersect.point ).add( intersect.face.normal );
-			voxel.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-			scene.add( voxel );
-			objects.push( voxel ); //add to array with plane
+
+			//raise vertices;
+			intersect.object.geometry.vertices[intersect.face.a].y += 5;
+			intersect.object.geometry.vertices[intersect.face.b].y += 5;
+			intersect.object.geometry.vertices[intersect.face.c].y += 5;
+			intersect.object.geometry.verticesNeedUpdate = true;
 		}
 		render();
-		console.log('objects: ', objects);
+		//console.log('objects: ', objects);
 	}
 }
 
