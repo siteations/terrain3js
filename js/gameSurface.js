@@ -232,10 +232,14 @@ function onDocumentMouseMove( event ) { //heavy terrain edits and boolean: what 
 			var townBuild = allowTown(intersect.face);
 			var cityBuild = allowCity(intersect.face);
 
-			intersect.object.geometry.faces[intersect.faceIndex].color
+			console.log(intersect);
+			//intersect.object.geometry.faces[intersect.faceIndex].color
 			intersect.object.geometry.faces.forEach((face, i) => {
-					if (colorCache.length>0){
-						face.color.set(colorCache[i]);
+					if (colorS){
+						var cols = slopeClassing(face);
+						if (cols!== undefined){
+							face.color.set(cols);
+						}
 					} else {
 						face.color.set(0xffffff);
 					}
