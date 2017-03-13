@@ -1,10 +1,5 @@
 //REMINDER OF INITIALIZE VARIABLES
 
-// var rollOverMesh, rollOverGeo, rollOverMaterial, forest;
-// var forestO, forestP, settlement, settlementP, road;
-
-// var swatch1, swatch2, swatch3, swatch4, swatch5;
-// var sH1, sH2, sH3, sH4, sH5;
 
 var container;
 var camera, scene, renderer;
@@ -13,61 +8,9 @@ var cubeGeo, cubeMaterial;
 var objects = [];
 var vertical = new THREE.Vector3( 0, 1, 0 );
 
-var cameraP= [{x:600,y:1400,z:2200}, {x:-2200,y:1400,z:600} ,{x:-600,y:1400,z:-2200},{x:2200,y:1400,z:-600}];
+var cameraP= [{x:300,y:1400,z:2200}, {x:-2200,y:1400,z:300} ,{x:-300,y:1400,z:-2200},{x:2200,y:1400,z:-300},{x:0,y:3000,z:0},{x:0,y:0,z:3000}];
 
 var colorS = false; //boolean for slope driven coloring
-
-// var slopeConv = ['peak', 'mnt', 'forest', 'field', 'woods', 'urban', 'road', 'bridge', 'shore', 'submerged']; //double check --- past builds color (urban, road, bridge, port, 'woods') leave alone, all others annotate slope
-// var slopeUrbC= { //great then [X]... then grab rgb color for face (with some string/number & Obj.keys)
-// 	woods: {
-// 		r:168,
-// 		g:187,
-// 		b:41,
-// 	},
-// 	urban: {
-// 		r:160,
-// 		g:180,
-// 		b:180,
-// 	},
-// 	road: {
-// 		r:105,
-// 		g:105,
-// 		b:105,
-// 	},
-// }
-
-// var slopeC = { //great then [X]... then grab rgb color for face (with some string/number & Obj.keys)
-// 	peaks: {
-// 		r:168,
-// 		g:187,
-// 		b:41,
-// 	},
-// 	mtn: {
-// 		r:160,
-// 		g:180,
-// 		b:180,
-// 	},
-// 	forest: {
-// 		r:105,
-// 		g:105,
-// 		b:105,
-// 	},
-// 	field: {
-// 		r:105,
-// 		g:105,
-// 		b:105,
-// 	},
-// 	shore: {
-// 		r:105,
-// 		g:105,
-// 		b:105,
-// 	},
-// 	submerged: {
-// 		r:105,
-// 		g:105,
-// 		b:105,
-// 	},
-// }
 
 
 init();
@@ -80,12 +23,12 @@ function init() {
 
 
 	//perspective camera looking at scene
-	camera = new THREE.PerspectiveCamera( 35, 1000 / 600, 1, 10000 );
+	camera = new THREE.PerspectiveCamera( 35, 900 / 600, 1, 10000 );
 	camera.position.set( cameraP[0].x, cameraP[0].y, cameraP[0].z  ); //position A
 	camera.lookAt( new THREE.Vector3() ); //just looks toward origin (0,0,0);
 
 	scene = new THREE.Scene();
-	scene.fog = new THREE.FogExp2( 0xf8efdf, 0.00035 );
+	scene.fog = new THREE.FogExp2( 0xf8efdf, 0.00030 );
 
 //-----------------------------CREATE OBJECT AND EVOKE/RENDER IN EVENTS-------------------------------------
 
@@ -117,7 +60,6 @@ function init() {
 	var geometry = new THREE.PlaneGeometry( 1600, 1600, 40, 40 );
 		geometry.rotateX( - Math.PI / 2 );
 			for (var i = 0, l = geometry.vertices.length; i < l; i++) {
-			  //geometry.vertices[i].y = (Math.random()*5)+ 5; //remember y is height here!
 			  geometry.vertices[i].y = (Math.random()*2) + 20; //remember y is height here!
 			}
 		console.log(geometry.vertices.length);
@@ -125,10 +67,11 @@ function init() {
 
 		geometry.faces.forEach( face =>{
 
-			//console.log('slope in degrees:', face.normal.angleTo(vertical)*57.2958);
-			//create a unified face-normal analysis function. . . which takes face and sets color based on slope
-			//broad categories. . . easy start to settlers of caton style civilization building. . .
-			face.color.setRGB(1,1,1);
+			if (colorS){ // won't actually run at start, but this should be the pattern
+
+			} else {
+				face.color.setRGB(1,1,1);
+			}
 		});
 
 	var planeMaterial = new THREE.MeshPhongMaterial({ shading: THREE.FlatShading, vertexColors: THREE.FaceColors, specular: 0x111111, shininess: 10, opacity: 0.75, side: THREE.DoubleSide,
@@ -150,7 +93,7 @@ function init() {
 	renderer = new THREE.WebGLRenderer( { antialias: true } );
 		renderer.setClearColor( 0x333333);
 		renderer.setPixelRatio( window.devicePixelRatio );
-		renderer.setSize( 1000, 600 );
+		renderer.setSize( 900, 600 );
 	container.appendChild( renderer.domElement );
 
 	// listening for interactions
@@ -162,18 +105,18 @@ function init() {
 	window.addEventListener( 'resize', onWindowResize, false );
 }
 
-// ---------------- CORE FUNCTIONS AND INTERACTIONS ------------------------------------
+// ---------------- CORE FUNCTIONS AND MOUSEOVER INTERACTIONS ------------------------------------
 
 function onWindowResize() {
-	camera.aspect = 1000 / 600;
+	camera.aspect = 900 / 600;
 	camera.updateProjectionMatrix();
-	renderer.setSize( 1000 , 600 );
+	renderer.setSize( 900 , 600 );
 }
 
-function onDocumentMouseMove( event ) {
+function onDocumentMouseDown( event ) {
 	event.preventDefault();
 	//screen positon of intersection
-	mouse.set( ( (event.clientX+10) / 1000 ) * 2 - 1, - ( (event.clientY+10) / 600 ) * 2 + 1 );
+	mouse.set( ( (event.clientX+10) / 900 ) * 2 - 1, - ( (event.clientY+10) / 600 ) * 2 + 1 );
 	raycaster.setFromCamera( mouse, camera );
 	var intersects = raycaster.intersectObject(plane);
 
@@ -181,59 +124,13 @@ function onDocumentMouseMove( event ) {
 		var intersect = intersects[ 0 ];
 		event.target.style.cursor = 'crosshair';
 
-			//intersect.object.geometry.faces[intersect.faceIndex].color
-			intersect.object.geometry.faces.forEach(face => {
-				face.color.setRGB(1,1,1);
-			})
-			intersect.face.color.setRGB(1,0.65,0);
-			intersect.object.geometry.colorsNeedUpdate = true;
+		var roadBuild = allowRoad(intersect.face);
+		var forestBuild = allowForest(intersect.face);
+		var townBuild = allowTown(intersect.face);
+		var cityBuild = allowCity(intersect.face);
 
-			forest.position.copy( intersect.point ).add( intersect.face.normal );
-			forest.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-			forest.position.y +=100;
-
-			settlement.position.copy( intersect.point ).add( intersect.face.normal );
-			settlement.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-			settlement.position.y +=200;
-
-			road.position.copy( intersect.point ).add( intersect.face.normal );
-			road.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-			road.position.y +=300;
-
-	render();
-	} else {
-		event.target.style.cursor = '';
-	}
-
-}
-
-function onDocumentMouseDown( event ) {
-	event.preventDefault();
-	//screen positon of intersection
-	//mouse.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
-	mouse.set( ( (event.clientX+10) / 1000 ) * 2 - 1, - ( (event.clientY+10) / 600 ) * 2 + 1 );
-	raycaster.setFromCamera( mouse, camera );
-	var intersects = raycaster.intersectObjects( objects );
-
-	if ( intersects.length > 0 ) {
-		var intersect = intersects[ 0 ];
-		event.target.style.cursor = 'crosshair';
-
-			//readout.innertext = intersect.face.normal.angleTo(vertical)*57.2958;
-		// delete cube
-		if ( isShiftDown ) {
-
-			//lower vertices;
-			intersect.object.geometry.vertices[intersect.face.a].y -= 5;
-			intersect.object.geometry.vertices[intersect.face.b].y -= 5;
-			intersect.object.geometry.vertices[intersect.face.c].y -= 5;
-			intersect.object.geometry.verticesNeedUpdate = true;
-			intersect.object.geometry.computeFaceNormals();
-
-			console.log('slope in degrees:', intersect.face.normal.angleTo(vertical)*57.2958);
-
-
-		} else if ( isForestDown ) {
+		if (isForestDown && forestBuild) {
+			console.log(slope(intersect.face));
 
 			var forestA = addForest();
 			//unpack this math for placing new object - vector3 Math!!!!!
@@ -242,7 +139,9 @@ function onDocumentMouseDown( event ) {
 			scene.add( forestA );
 			objects.push( forestA );
 
-		} else if ( isTownDown ) {
+			//also update color beneath object...
+
+		} else if (isTownDown && townBuild) {
 
 			var townA = addSettlement();
 			//unpack this math for placing new object - vector3 Math!!!!!
@@ -251,21 +150,136 @@ function onDocumentMouseDown( event ) {
 			scene.add( townA );
 			objects.push( townA );
 
-		} else 	{
+		} else if (isRoadDown && roadBuild) {
 
-			//raise vertices;
-			intersect.object.geometry.vertices[intersect.face.a].y += 5;
-			intersect.object.geometry.vertices[intersect.face.b].y += 5;
-			intersect.object.geometry.vertices[intersect.face.c].y += 5;
+			var townA = addSettlement();
+			//unpack this math for placing new object - vector3 Math!!!!!
+			townA.position.copy( intersect.point ).add( intersect.face.normal );
+			townA.position.y +=20;
+			scene.add( townA );
+			objects.push( townA );
+
+		} else if (isCityDown && cityBuild) {
+
+			var townA = addSettlement();
+			//unpack this math for placing new object - vector3 Math!!!!!
+			townA.position.copy( intersect.point ).add( intersect.face.normal );
+			townA.position.y +=20;
+			scene.add( townA );
+			objects.push( townA );
+
+		} //else if (isBoatDown && boatBuild) {
+
+		// 	var townA = addSettlement();
+		// 	//unpack this math for placing new object - vector3 Math!!!!!
+		// 	townA.position.copy( intersect.point ).add( intersect.face.normal );
+		// 	townA.position.y +=20;
+		// 	scene.add( townA );
+		// 	objects.push( townA );
+
+		// }
+
+	render();
+
+	} else {
+		event.target.style.cursor = '';
+	}
+
+}
+
+function onDocumentMouseMove( event ) { //heavy terrain edits and boolean: what can be built
+	event.preventDefault();
+	//screen positon of intersection
+	//mouse.set( ( event.clientX / window.innerWidth ) * 2 - 1, - ( event.clientY / window.innerHeight ) * 2 + 1 );
+	mouse.set( ( (event.clientX+10) / 900 ) * 2 - 1, - ( (event.clientY+10) / 600 ) * 2 + 1 );
+	raycaster.setFromCamera( mouse, camera );
+	var intersects = raycaster.intersectObjects( objects );
+
+	if ( intersects.length > 0 ) {
+		var intersect = intersects[ 0 ];
+		event.target.style.cursor = 'crosshair';
+
+
+//--------------------- major additions and subtractions first ----------------------
+
+		if ( isShiftDown ) {
+
+			//lower vertices;
+			intersect.object.geometry.vertices[intersect.face.a].y -= 2;
+			intersect.object.geometry.vertices[intersect.face.b].y -= 2;
+			intersect.object.geometry.vertices[intersect.face.c].y -= 2;
 			intersect.object.geometry.verticesNeedUpdate = true;
 			intersect.object.geometry.computeFaceNormals();
 
-			//console.log('slope in degrees:', intersect.face.normal.angleTo(vertical)*57.2958);
-			//colorBySlope(intersect.face);
-			//create a unified face-normal analysis function. . . which takes face and sets color based on slope
-			//broad categories. . . easy start to settlers of caton style civilization building. . .
+			console.log('slope in degrees:', intersect.face.normal.angleTo(vertical)*57.2958);
+
+		} else if ( isTabDown ) {
+
+			//raise vertices;
+			intersect.object.geometry.vertices[intersect.face.a].y += 2;
+			intersect.object.geometry.vertices[intersect.face.b].y += 2;
+			intersect.object.geometry.vertices[intersect.face.c].y += 2;
+			intersect.object.geometry.verticesNeedUpdate = true;
+			intersect.object.geometry.computeFaceNormals();
+
+			console.log('slope in degrees:', intersect.face.normal.angleTo(vertical)*57.2958);
+
+
+		} else { // this is then all the hover conditions
+
+			var roadBuild = allowRoad(intersect.face);
+			var forestBuild = allowForest(intersect.face);
+			var townBuild = allowTown(intersect.face);
+			var cityBuild = allowCity(intersect.face);
+
+			intersect.object.geometry.faces[intersect.faceIndex].color
+			intersect.object.geometry.faces.forEach((face, i) => {
+					if (colorCache.length>0){
+						face.color.set(colorCache[i]);
+					} else {
+						face.color.set(0xffffff);
+					}
+			})
+
+			intersect.face.color.setRGB(1,0.65,0);
+			intersect.object.geometry.colorsNeedUpdate = true;
+			//no cache on hoover if colorS off... otherwise add updates to terrain,
+			//but ignore insersect.face.color
+
+			if (forestBuild){
+				forest.position.copy( intersect.point ).add( intersect.face.normal );
+				forest.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
+				forest.position.y +=100;
+			}
+
+			if (townBuild){
+				settlement.position.copy( intersect.point ).add( intersect.face.normal );
+				settlement.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
+				settlement.position.y +=180;
+			}
+
+			if (roadBuild){
+				road.position.copy( intersect.point ).add( intersect.face.normal );
+				road.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
+				road.position.y +=260;
+			}
+
+			// if (cityBuild){
+			// 	road.position.copy( intersect.point ).add( intersect.face.normal );
+			// 	road.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
+			// 	road.position.y +=340;
+			// }
+
+			// if (boatBuild){
+			// 	road.position.copy( intersect.point ).add( intersect.face.normal );
+			// 	road.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
+			// 	road.position.y +=420;
+			// }
+
+			//console.log(slopeClassing(intersect.face));
 
 		}
+
 		render();
 		//console.log('objects: ', objects);
 	}
@@ -275,6 +289,7 @@ function onDocumentMouseDown( event ) {
 function onDocumentKeyDown( event ) {
 	switch( event.keyCode ) {
 		case 16: isShiftDown = true; break;
+		case 9: isTabDown = true; break;
 		case 17: isCityDown = true; break;
 		case 82: isRoadDown = true; break;
 		case 84: isTownDown = true; break;
@@ -288,12 +303,15 @@ function onDocumentKeyDown( event ) {
 		case 50: rotateCamera(1); break;
 		case 51: rotateCamera(2); break;
 		case 52: rotateCamera(3); break;
+		case 53: rotateCamera(4); break;
+		case 54: rotateCamera(5); break;
 	}
 }
 
 function onDocumentKeyUp( event ) {
 	switch ( event.keyCode ) {
 		case 16: isShiftDown = false; break;
+		case 9: isTabDown = false; break;
 		case 67: isCityDown = false; break;
 		case 82: isRoadDown = false; break;
 		case 84: isTownDown = false; break;
@@ -310,8 +328,17 @@ function showSlope(event){
 
 	if (event.target.value === 'show'){
 		colorS = true;
+		colorTerrain(plane);
+		plane.geometry.faces.colorsNeedUpdate = true;
+
+		render();
+
 	} else {
 		colorS = false;
+		uncolorTerrain(plane);
+		plane.geometry.faces.colorsNeedUpdate = true;
+
+		render();
 	};
 
 }

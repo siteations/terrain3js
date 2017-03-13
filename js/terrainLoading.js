@@ -23,6 +23,11 @@ function addTerrain(file){
 		plane.geometry.verticesNeedUpdate = true;
 		plane.geometry.computeFaceNormals();
 
+		if (colorS){
+			colorTerrain(plane);
+			plane.geometry.faces.colorsNeedUpdate = true;
+		};
+
 		scene.children.forEach((child, i)=>{
 			if (i>6 || child.name === 'settlementP' || child.name === 'forestP'  || child.name === 'cityP' || child.name === 'bridgeP'|| child.name === 'boatP'){
 				scene.remove(child);
@@ -50,6 +55,11 @@ function addTerrain(file){
 
 		plane.geometry.verticesNeedUpdate = true;
 		plane.geometry.computeFaceNormals();
+
+		if (colorS){
+			colorTerrain(plane);
+			plane.geometry.faces.colorsNeedUpdate = true;
+		};
 
 		for (var i=0; i<scene.children ; i++){
 
@@ -106,6 +116,7 @@ function onTerrainThumb(event){
 	var file = event.target.value;
 	//var file = '../terrain/02.jpg';
 	addTerrain(file);
+
 };
 
 

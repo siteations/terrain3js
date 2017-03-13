@@ -2,64 +2,35 @@
 
 // these functions are always called interactive context with 'plane' and 'intersect' active/inherited
 var plane, cube, edges;
-var isShiftDown = false, isForestDown = false,  isTownDown = false, isCityDown = false, isRoadDown = false, isBridgeDown = false;
+var colorCache=[];
+var isShiftDown = false, isTabDown = false, isForestDown = false,  isTownDown = false, isCityDown = false, isRoadDown = false, isBridgeDown = false;
 
-var slopeConv = ['peak', 'mnt', 'forest', 'field', 'woods', 'urban', 'road', 'bridge', 'shore', 'submerged']; //double check --- past builds color (urban, road, bridge, port, 'woods') leave alone, all others annotate slope
+var slopeConv = ['peak', 'mnt', 'forest', 'field', 'shore', 'submerged'];
+var slopeConvAdd = ['woods', 'urban', 'road'];  //double check --- past builds color (urban, road, bridge, port, 'woods') leave alone, all others annotate slope
 var slopeUrbC= { //great then [X]... then grab rgb color for face (with some string/number & Obj.keys)
-	woods: {
-		r:168,
-		g:187,
-		b:41,
-	},
-	urban: {
-		r:160,
-		g:180,
-		b:180,
-	},
-	road: {
-		r:105,
-		g:105,
-		b:105,
-	},
+	woods: 0xa8bb29,
+	urban: 0xa0b4b4,
+	road: 0x696969,
 }
 
 var slopeC = { //great then [X]... then grab rgb color for face (with some string/number & Obj.keys)
-	peaks: {
-		r:168,
-		g:187,
-		b:41,
-	},
-	mtn: {
-		r:160,
-		g:180,
-		b:180,
-	},
-	forest: {
-		r:105,
-		g:105,
-		b:105,
-	},
-	field: {
-		r:105,
-		g:105,
-		b:105,
-	},
-	shore: {
-		r:105,
-		g:105,
-		b:105,
-	},
-	submerged: {
-		r:105,
-		g:105,
-		b:105,
-	},
+	peaks: 0xebf1fc,
+	mtn: 0xbec4d1,
+	forest: 0x91bd00,
+	field: 0xdfe374,
+	shore: 0xfeffc5,
+	submerged: 0xd4a153,
 }
 
-//utility slope conversion from normals
+//utility: slope conversion from normals
 function slope(face){ //intersect.face or plane.geometry.faces.map...
 	var degSlope=face.normal.angleTo(vertical)*57.2958;
 	return degSlope;
+}
+//utility: y elevation (for spread height test)
+function vertY(face){ //intersect.face or plane.geometry.faces.map...
+	var vertYs = [plane.geometry.vertices[face.a].y, plane.geometry.vertices[face.b].y, plane.geometry.vertices[face.c].y];
+	return vertYs;
 }
 
 //-------------------- build or not to build? ------------------------------
@@ -79,16 +50,32 @@ function allowTown(face){ // true or false based on height (min as 3' above 0)
 }
 
 // ROAD BOOLEAN
-// height (min at 1' above 0, ie water level)
+// height (min at 3' above 0, ie water level)
 // slope < 12 degrees... IGNORE CROSS-SLOPE
 function allowRoad(face){ // true or false based on height (min as 3' above 0)
 
+	var allow = false;
+	var slopeM = slope(face);
+	var vertM = vertY(face);
+
+	if (Math.min(...vertM) >= 3 && slopeM < 12) {
+		allow = true;
+	}
+	return allow;
 }
 
 // PORT/BOAT BOOLEAN
 // height (max at 12' below 0, ie shallow tug channel)
 // no slope specified
 function allowBoat(face){ // true or false based on height (min as 3' above 0)
+
+	var allow = false;
+	var vertM = vertY(face);
+
+	if (Math.max(...vertM) <= -12) {
+		allow = true;
+	}
+	return allow;
 
 }
 
@@ -97,4 +84,76 @@ function allowBoat(face){ // true or false based on height (min as 3' above 0)
 // face slope < 60 degrees
 function allowForest(face){ // true or false based on height (min as 3' above 0)
 
+	var allow = false;
+	var slopeM = slope(face);
+	var vertM = vertY(face);
+
+	if (Math.min(...vertM) >= 0 && slopeM < 60) {
+		allow = true;
+	}
+	return allow;
+
+}
+
+//-------------------- color or recolor? ( only when colorS===true)------------------------------
+//do generic color types and on-build clicks recolor individual faces
+//always update/clone the colorCacheFull=[] when coloring, one color per face
+//use colorCacheWhite=[] with doing on-build additions when colorS=== false
+
+//write a function to compare them during the on-click update and transfer the 'urban/on build swatches'... editing/swapping only the background colors
+
+//var slopeConv = ['peak', 'mnt', 'forest', 'field', 'woods', 'urban', 'road', 'bridge', 'shore', 'submerged'];
+
+function slopeClassing(face){ //return choosen color to fit .map structure, only run when face.color is white
+
+	var slopeM = slope(face);
+	var vertM = vertY(face);
+	var type = '';
+
+	if (slopeM > 70 && Math.min(...vertM) >= 5){
+		type = slopeConv[0];
+	} else if (slopeM > 50 && Math.min(...vertM) >= 5){
+		type = slopeConv[1];
+	} else if (slopeM > 15 && Math.min(...vertM) >= 20){
+		type = slopeConv[2];
+	} else if (slopeM > 0 && Math.min(...vertM) >= 5){
+		type = slopeConv[3];
+	} else if (Math.max(...vertM) <= 5 && Math.min(...vertM) >= 0){
+		type = slopeConv[4];
+	} else if (Math.min(...vertM) <= 0){
+		type = slopeConv[5];
+	} else {
+		type = slopeConv[4];
+	}//type set for automated color generation
+	console.log(type);
+	return slopeC[type];
+
+}
+
+function colorTerrain(plane){
+	var cache=[];
+
+	plane.geometry.faces.forEach(face=>{
+		var cols = slopeClassing(face);
+		if (cols!== undefined){
+			face.color.set(cols);
+			cache.push(cols);
+		}
+	});
+
+	colorCache=cache;
+	plane.geometry.faces.colorsNeedUpdate = true;
+}
+
+function uncolorTerrain(plane){
+	var cache=[];
+
+	plane.geometry.faces.forEach(face=>{
+			face.color.set(0xffffff);
+			cache.push(0xffffff);
+			//push to cacheAlso...
+	});
+
+	colorCache=cache;
+	plane.geometry.faces.colorsNeedUpdate = true;
 }
