@@ -23,6 +23,12 @@ function addTerrain(file){
 		plane.geometry.verticesNeedUpdate = true;
 		plane.geometry.computeFaceNormals();
 
+		scene.children.forEach((child, i)=>{
+			if (i>6 || child.name === 'settlementP' || child.name === 'forestP'  || child.name === 'cityP' || child.name === 'bridgeP'|| child.name === 'boatP'){
+				scene.remove(child);
+			}
+		});
+
 		render();
 
 		},
@@ -44,6 +50,14 @@ function addTerrain(file){
 
 		plane.geometry.verticesNeedUpdate = true;
 		plane.geometry.computeFaceNormals();
+
+		for (var i=0; i<scene.children ; i++){
+
+			if (scene.children[i].name ==='settlementP'){
+				scene.remove(scene.children[i]);
+
+			}
+		};
 
 		render();
 	}

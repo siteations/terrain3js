@@ -8,16 +8,66 @@
 
 var container;
 var camera, scene, renderer;
-var plane, cube, edges;
-var mouse, raycaster, isShiftDown = false, isForestDown = false,  isTownDown = false, isCityDown = false;
+var mouse, raycaster;
 var cubeGeo, cubeMaterial;
 var objects = [];
 var vertical = new THREE.Vector3( 0, 1, 0 );
-var colorS = false; //boolean for slope driven coloring
-var slopeConv = ['peak', 'mnt', 'forest', 'field', 'woods,' 'urban', 'road', 'bridge', 'shore', 'submerged']; //double check --- past builds color (urban, road, bridge, port, 'woods') leave alone, all others annotate slope
-var slopeC = { //great then [X]... then grab rgb color for face (with some string/number & Obj.keys)
 
-}
+var cameraP= [{x:600,y:1400,z:2200}, {x:-2200,y:1400,z:600} ,{x:-600,y:1400,z:-2200},{x:2200,y:1400,z:-600}];
+
+var colorS = false; //boolean for slope driven coloring
+
+// var slopeConv = ['peak', 'mnt', 'forest', 'field', 'woods', 'urban', 'road', 'bridge', 'shore', 'submerged']; //double check --- past builds color (urban, road, bridge, port, 'woods') leave alone, all others annotate slope
+// var slopeUrbC= { //great then [X]... then grab rgb color for face (with some string/number & Obj.keys)
+// 	woods: {
+// 		r:168,
+// 		g:187,
+// 		b:41,
+// 	},
+// 	urban: {
+// 		r:160,
+// 		g:180,
+// 		b:180,
+// 	},
+// 	road: {
+// 		r:105,
+// 		g:105,
+// 		b:105,
+// 	},
+// }
+
+// var slopeC = { //great then [X]... then grab rgb color for face (with some string/number & Obj.keys)
+// 	peaks: {
+// 		r:168,
+// 		g:187,
+// 		b:41,
+// 	},
+// 	mtn: {
+// 		r:160,
+// 		g:180,
+// 		b:180,
+// 	},
+// 	forest: {
+// 		r:105,
+// 		g:105,
+// 		b:105,
+// 	},
+// 	field: {
+// 		r:105,
+// 		g:105,
+// 		b:105,
+// 	},
+// 	shore: {
+// 		r:105,
+// 		g:105,
+// 		b:105,
+// 	},
+// 	submerged: {
+// 		r:105,
+// 		g:105,
+// 		b:105,
+// 	},
+// }
 
 
 init();
@@ -31,8 +81,7 @@ function init() {
 
 	//perspective camera looking at scene
 	camera = new THREE.PerspectiveCamera( 35, 1000 / 600, 1, 10000 );
-	camera.position.set( 600, 1400, 2200 ); //position A
-	//camera.position.set( 2200 ,1800, 600 ); //position B
+	camera.position.set( cameraP[0].x, cameraP[0].y, cameraP[0].z  ); //position A
 	camera.lookAt( new THREE.Vector3() ); //just looks toward origin (0,0,0);
 
 	scene = new THREE.Scene();
@@ -47,6 +96,7 @@ function init() {
 	 });
 	var waterplane = new THREE.Mesh( geometry, gwMaterial );
 	scene.add( waterplane );
+	console.log(waterplane);
 
 	//COMPONENT OBJECTS CREATION
 	forestO = createForest();
@@ -211,7 +261,7 @@ function onDocumentMouseDown( event ) {
 			intersect.object.geometry.computeFaceNormals();
 
 			//console.log('slope in degrees:', intersect.face.normal.angleTo(vertical)*57.2958);
-			colorBySlope(intersect.face);
+			//colorBySlope(intersect.face);
 			//create a unified face-normal analysis function. . . which takes face and sets color based on slope
 			//broad categories. . . easy start to settlers of caton style civilization building. . .
 
@@ -226,13 +276,18 @@ function onDocumentKeyDown( event ) {
 	switch( event.keyCode ) {
 		case 16: isShiftDown = true; break;
 		case 17: isCityDown = true; break;
+		case 82: isRoadDown = true; break;
 		case 84: isTownDown = true; break;
 		case 70: isForestDown = true; break;
 
 		//tie to objects/buttons later
-		case 65: plane.rotation.y += Math.PI/2; console.log(event); break;
-		case 83: plane.rotation.y -= Math.PI/2;  console.log(event); break;
-		case 87: plane.rotation.y -= Math.PI;  console.log(event); break;
+		// case 65: plane.rotation.y += Math.PI/2; console.log(event); break;
+		// case 83: plane.rotation.y -= Math.PI/2;  console.log(event); break;
+		// case 87: plane.rotation.y -= Math.PI;  console.log(event); break;
+		case 49: rotateCamera(0); break;
+		case 50: rotateCamera(1); break;
+		case 51: rotateCamera(2); break;
+		case 52: rotateCamera(3); break;
 	}
 }
 
@@ -240,6 +295,7 @@ function onDocumentKeyUp( event ) {
 	switch ( event.keyCode ) {
 		case 16: isShiftDown = false; break;
 		case 67: isCityDown = false; break;
+		case 82: isRoadDown = false; break;
 		case 84: isTownDown = false; break;
 		case 70: isForestDown = false; break;
 	}
@@ -249,10 +305,23 @@ function render() {
 	renderer.render( scene, camera );
 }
 
+function showSlope(event){
+	event.preventDefault();
 
-function colorBySlope(face){
-	var degSlope=face.normal.angleTo(vertical)*57.2958;
-
-
+	if (event.target.value === 'show'){
+		colorS = true;
+	} else {
+		colorS = false;
+	};
 
 }
+
+function rotateCamera(num){
+
+	camera.position.set( cameraP[num].x, cameraP[num].y, cameraP[num].z  ); //0-4 are the 4 spots
+	camera.lookAt( new THREE.Vector3() );
+
+	render();
+
+}
+

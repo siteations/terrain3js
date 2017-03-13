@@ -1,12 +1,14 @@
 //REMINDER OF INITIALIZE VARIABLES
 
 var rollOverMesh, rollOverGeo, rollOverMaterial, forest;
-var forestO, forestP, settlement, settlementP, road;
+var forestO, forestP, settlement, settlementP, road, boat, boatP;
+var bridge; // this is a whole other logic;
 
 
 // MISC OBJECT CREATION
 function createForest(){
 	forest = new THREE.Group();
+	forest.name="forest";
 		rollOverGeo = new THREE.ConeGeometry( 10, 35);
 			rollOverGeo.translate( 0, 0, 10 );
 		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0x209168, opacity: 0.95, transparent: true } );
@@ -19,7 +21,7 @@ function createForest(){
 	forest.add( rollOverMesh );
 		rollOverGeo = new THREE.SphereGeometry( 8 );
 			rollOverGeo.translate( -12, 10, 25);
-		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xa7bb29, opacity: 1, transparent: true } );
+		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xb2da56, opacity: 1, transparent: true } );
 		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
 	forest.add( rollOverMesh );
 	return forest;
@@ -27,6 +29,7 @@ function createForest(){
 
 function addForest(){
 	forestP = new THREE.Group();
+	forestP.name="forestP";
 		rollOverGeo = new THREE.ConeGeometry( 10, 35);
 			rollOverGeo.translate( 0, 0, 10 );
 		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0x209168, opacity: 0.95, transparent: true } );
@@ -39,7 +42,7 @@ function addForest(){
 	forestP.add( rollOverMesh );
 		rollOverGeo = new THREE.SphereGeometry( 8 );
 			rollOverGeo.translate( -12, 10, 25);
-		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xa7bb29, opacity: 1, transparent: true } );
+		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xb2da56, opacity: 1, transparent: true } );
 		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
 	forestP.add( rollOverMesh );
 	return forestP;
@@ -47,6 +50,7 @@ function addForest(){
 
 function createSettlement(){
 	settlement = new THREE.Group();
+	settlement.name="settlement";
 		rollOverGeo = new THREE.BoxGeometry( 15, 20, 15);
 		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xd0442e, opacity: 0.95, transparent: true } );
 		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
@@ -66,6 +70,7 @@ function createSettlement(){
 
 function addSettlement(){
 	settlementP = new THREE.Group();
+	settlementP.name="settlementP";
 		rollOverGeo = new THREE.BoxGeometry( 15, 20, 15);
 		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0xd0442e, opacity: 0.95, transparent: true } );
 		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
