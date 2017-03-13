@@ -94,3 +94,34 @@ function createRoad(){
 		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
 		return rollOverMesh;
 }
+
+function addRoad(face){
+		//console.log(plane.geometry.vertices[face.a]);
+		var vert = [plane.geometry.vertices[face.a], plane.geometry.vertices[face.b], plane.geometry.vertices[face.c]] ;
+		var tile = new THREE.Geometry();
+
+		vert.forEach(vertPt=>{
+			vertPt.y += 2;
+			tile.vertices.push(vertPt);
+		});
+
+		tile.faces.push( new THREE.Face3( 0, 1, 2 ) );
+		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0x696969, opacity: 0.95, transparent: true } );
+		rollOverMesh = new THREE.Mesh( tile, rollOverMaterial );
+		return rollOverMesh;
+}
+
+
+function createBoat(){
+		rollOverGeo = new THREE.BoxGeometry( 10, 20, 50);
+		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0x008080, opacity: 0.95, transparent: true } );
+		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
+		return rollOverMesh;
+}
+
+function addBoat(){
+		rollOverGeo = new THREE.BoxGeometry( 10, 20, 50);
+		rollOverMaterial = new THREE.MeshBasicMaterial( { color: 0x008080, opacity: 0.95, transparent: true } );
+		rollOverMesh = new THREE.Mesh( rollOverGeo, rollOverMaterial );
+	return rollOverMesh;
+}

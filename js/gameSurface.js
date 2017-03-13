@@ -51,6 +51,9 @@ function init() {
 	road = createRoad();
 	scene.add(road);
 
+	boat = createBoat();
+	scene.add(boat);
+
 	//setting up the interactions for finding 'space' intersects
 	raycaster = new THREE.Raycaster();
 	mouse = new THREE.Vector2();
@@ -113,6 +116,8 @@ function onWindowResize() {
 	renderer.setSize( 900 , 600 );
 }
 
+// ---------------------------- ON CODED MOUSE CLICKS ------------------------------------
+
 function onDocumentMouseDown( event ) {
 	event.preventDefault();
 	//screen positon of intersection
@@ -127,15 +132,16 @@ function onDocumentMouseDown( event ) {
 		var roadBuild = allowRoad(intersect.face);
 		var forestBuild = allowForest(intersect.face);
 		var townBuild = allowTown(intersect.face);
-		var cityBuild = allowCity(intersect.face);
+		// var cityBuild = allowCity(intersect.face);
+		var boatBuild = allowBoat(intersect.face);
 
 		if (isForestDown && forestBuild) {
-			console.log(slope(intersect.face));
+			//console.log(slope(intersect.face));
 
 			var forestA = addForest();
 			//unpack this math for placing new object - vector3 Math!!!!!
 			forestA.position.copy( intersect.point ).add( intersect.face.normal );
-			forestA.position.y +=20;
+			forestA.position.y +=10;
 			scene.add( forestA );
 			objects.push( forestA );
 
@@ -146,29 +152,17 @@ function onDocumentMouseDown( event ) {
 			var townA = addSettlement();
 			//unpack this math for placing new object - vector3 Math!!!!!
 			townA.position.copy( intersect.point ).add( intersect.face.normal );
-			townA.position.y +=20;
+			townA.position.y +=10;
 			scene.add( townA );
 			objects.push( townA );
 
 		} else if (isRoadDown && roadBuild) {
 
-			var townA = addSettlement();
-			//unpack this math for placing new object - vector3 Math!!!!!
-			townA.position.copy( intersect.point ).add( intersect.face.normal );
-			townA.position.y +=20;
-			scene.add( townA );
-			objects.push( townA );
+			var roadA = addRoad(intersect.face); //face object instead of mesh continuous
+			scene.add( roadA );
+			objects.push( roadA );
 
-		} else if (isCityDown && cityBuild) {
-
-			var townA = addSettlement();
-			//unpack this math for placing new object - vector3 Math!!!!!
-			townA.position.copy( intersect.point ).add( intersect.face.normal );
-			townA.position.y +=20;
-			scene.add( townA );
-			objects.push( townA );
-
-		} //else if (isBoatDown && boatBuild) {
+		} //else if (isCityDown && cityBuild) {
 
 		// 	var townA = addSettlement();
 		// 	//unpack this math for placing new object - vector3 Math!!!!!
@@ -178,14 +172,27 @@ function onDocumentMouseDown( event ) {
 		// 	objects.push( townA );
 
 		// }
+		else if (isBoatDown && boatBuild) {
+
+			var boatA = addBoat();
+			//unpack this math for placing new object - vector3 Math!!!!!
+			boatA.position.copy( intersect.point ).add( intersect.face.normal );
+			boatA.position.y = 0;
+			scene.add( boatA );
+			objects.push( boatA );
+
+		}
 
 	render();
 
 	} else {
+
 		event.target.style.cursor = '';
 	}
 
 }
+
+// ------------------------------- MOUSEOVER INTERACTIONS ------------------------------------
 
 function onDocumentMouseMove( event ) { //heavy terrain edits and boolean: what can be built
 	event.preventDefault();
@@ -205,24 +212,20 @@ function onDocumentMouseMove( event ) { //heavy terrain edits and boolean: what 
 		if ( isShiftDown ) {
 
 			//lower vertices;
-			intersect.object.geometry.vertices[intersect.face.a].y -= 2;
-			intersect.object.geometry.vertices[intersect.face.b].y -= 2;
-			intersect.object.geometry.vertices[intersect.face.c].y -= 2;
+			intersect.object.geometry.vertices[intersect.face.a].y -= 5;
+			intersect.object.geometry.vertices[intersect.face.b].y -= 5;
+			intersect.object.geometry.vertices[intersect.face.c].y -= 5;
 			intersect.object.geometry.verticesNeedUpdate = true;
 			intersect.object.geometry.computeFaceNormals();
-
-			console.log('slope in degrees:', intersect.face.normal.angleTo(vertical)*57.2958);
 
 		} else if ( isTabDown ) {
 
 			//raise vertices;
-			intersect.object.geometry.vertices[intersect.face.a].y += 2;
-			intersect.object.geometry.vertices[intersect.face.b].y += 2;
-			intersect.object.geometry.vertices[intersect.face.c].y += 2;
+			intersect.object.geometry.vertices[intersect.face.a].y += 5;
+			intersect.object.geometry.vertices[intersect.face.b].y += 5;
+			intersect.object.geometry.vertices[intersect.face.c].y += 5;
 			intersect.object.geometry.verticesNeedUpdate = true;
 			intersect.object.geometry.computeFaceNormals();
-
-			console.log('slope in degrees:', intersect.face.normal.angleTo(vertical)*57.2958);
 
 
 		} else { // this is then all the hover conditions
@@ -231,19 +234,21 @@ function onDocumentMouseMove( event ) { //heavy terrain edits and boolean: what 
 			var forestBuild = allowForest(intersect.face);
 			var townBuild = allowTown(intersect.face);
 			var cityBuild = allowCity(intersect.face);
+			var boatBuild = allowBoat(intersect.face);
 
-			console.log(intersect);
-			//intersect.object.geometry.faces[intersect.faceIndex].color
+			//console.log('road? :', roadBuild);
+
 			intersect.object.geometry.faces.forEach((face, i) => {
+
 					if (colorS){
 						var cols = slopeClassing(face);
 						if (cols!== undefined){
 							face.color.set(cols);
-						}
+						} // retains road color
 					} else {
-						face.color.set(0xffffff);
+							face.color.set(0xffffff);
 					}
-			})
+			});
 
 			intersect.face.color.setRGB(1,0.65,0);
 			intersect.object.geometry.colorsNeedUpdate = true;
@@ -253,19 +258,24 @@ function onDocumentMouseMove( event ) { //heavy terrain edits and boolean: what 
 			if (forestBuild){
 				forest.position.copy( intersect.point ).add( intersect.face.normal );
 				forest.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-				forest.position.y +=100;
+				forest.position.y = 10;
+				forest.position.x = 850;
 			}
 
 			if (townBuild){
 				settlement.position.copy( intersect.point ).add( intersect.face.normal );
 				settlement.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-				settlement.position.y +=180;
+				// settlement.position.y +=100;
+				// settlement.position.y +=50;
+				settlement.position.y = 10;
+				settlement.position.x = 950;
 			}
 
 			if (roadBuild){
 				road.position.copy( intersect.point ).add( intersect.face.normal );
 				road.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-				road.position.y +=260;
+				road.position.y =10;
+				road.position.x =900;
 			}
 
 			// if (cityBuild){
@@ -274,11 +284,14 @@ function onDocumentMouseMove( event ) { //heavy terrain edits and boolean: what 
 			// 	road.position.y +=340;
 			// }
 
-			// if (boatBuild){
-			// 	road.position.copy( intersect.point ).add( intersect.face.normal );
-			// 	road.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
-			// 	road.position.y +=420;
-			// }
+			if (boatBuild){
+				//console.log('boat build');
+				boat.position.copy( intersect.point ).add( intersect.face.normal );
+				boat.position.divideScalar( 50 ).floor().multiplyScalar( 50 ).addScalar( 25 );
+				boat.position.y = 10;
+				boat.position.x = 875;
+				boat.position.z -= -100;
+			}
 
 			//console.log(slopeClassing(intersect.face));
 
@@ -298,6 +311,7 @@ function onDocumentKeyDown( event ) {
 		case 82: isRoadDown = true; break;
 		case 84: isTownDown = true; break;
 		case 70: isForestDown = true; break;
+		case 66: isBoatDown = true; break;
 
 		//tie to objects/buttons later
 		// case 65: plane.rotation.y += Math.PI/2; console.log(event); break;
@@ -320,6 +334,7 @@ function onDocumentKeyUp( event ) {
 		case 82: isRoadDown = false; break;
 		case 84: isTownDown = false; break;
 		case 70: isForestDown = false; break;
+		case 66: isBoatDown = false; break;
 	}
 }
 

@@ -3,7 +3,7 @@
 // these functions are always called interactive context with 'plane' and 'intersect' active/inherited
 var plane, cube, edges;
 var colorCache=[];
-var isShiftDown = false, isTabDown = false, isForestDown = false,  isTownDown = false, isCityDown = false, isRoadDown = false, isBridgeDown = false;
+var isShiftDown = false, isTabDown = false, isForestDown = false,  isTownDown = false, isCityDown = false, isRoadDown = false, isBridgeDown = false, isBoatDown = false;
 
 var slopeConv = ['peak', 'mnt', 'forest', 'field', 'shore', 'submerged'];
 var slopeConvAdd = ['woods', 'urban', 'road'];  //double check --- past builds color (urban, road, bridge, port, 'woods') leave alone, all others annotate slope
@@ -46,7 +46,32 @@ function allowCity(face){ // true or false based on height (min as 3' above 0)
 // height (min at 3' above 0, ie water level)
 // highest vert.y must touch 4 faces with slope < 9 degrees
 function allowTown(face){ // true or false based on height (min as 3' above 0)
+	var slopeM = slope(face);
+	var vertM = vertY(face);
+	var allow = false;
 
+	var slopeCut = 20;
+
+	if (slopeM < slopeCut && Math.min(...vertM)>3){
+		var clusterV = [face.a, face.b, face.c];
+
+		var adjFaceSlopes = clusterV.map(vertex=>{
+			var faces = plane.geometry.faces.filter(face1 => {
+				return face1.a === vertex || face1.b === vertex || face1.c === vertex ;
+			});
+			var adjSlopes = faces.map(face2=>{
+				return slope(face2);
+			});
+
+			return (Math.max(...adjSlopes) < slopeCut); // the less than
+		})
+
+		if (adjFaceSlopes[0] || adjFaceSlopes[1] || adjFaceSlopes[2]){
+			allow=true;
+		}
+	}
+
+	return allow;
 }
 
 // ROAD BOOLEAN
@@ -58,7 +83,7 @@ function allowRoad(face){ // true or false based on height (min as 3' above 0)
 	var slopeM = slope(face);
 	var vertM = vertY(face);
 
-	if (Math.min(...vertM) >= 3 && slopeM < 12) {
+	if (Math.min(...vertM) >= 0 && slopeM < 20) {
 		allow = true;
 	}
 	return allow;
@@ -72,7 +97,7 @@ function allowBoat(face){ // true or false based on height (min as 3' above 0)
 	var allow = false;
 	var vertM = vertY(face);
 
-	if (Math.max(...vertM) <= -12) {
+	if (Math.max(...vertM) <= -5) {
 		allow = true;
 	}
 	return allow;
@@ -125,35 +150,29 @@ function slopeClassing(face){ //return choosen color to fit .map structure, only
 	} else {
 		type = slopeConv[4];
 	}//type set for automated color generation
-	console.log(type);
+	//console.log(slopeC[type], slopeUrbC.road);
 	return slopeC[type];
 
 }
 
-function colorTerrain(plane){
-	var cache=[];
+function colorTerrain(plane){ // full color change
 
 	plane.geometry.faces.forEach(face=>{
 		var cols = slopeClassing(face);
 		if (cols!== undefined){
 			face.color.set(cols);
-			cache.push(cols);
 		}
 	});
 
-	colorCache=cache;
 	plane.geometry.faces.colorsNeedUpdate = true;
 }
 
-function uncolorTerrain(plane){
-	var cache=[];
+function uncolorTerrain(plane){ // full color change remmoval
 
 	plane.geometry.faces.forEach(face=>{
 			face.color.set(0xffffff);
-			cache.push(0xffffff);
 			//push to cacheAlso...
 	});
 
-	colorCache=cache;
 	plane.geometry.faces.colorsNeedUpdate = true;
 }

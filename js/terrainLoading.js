@@ -29,7 +29,7 @@ function addTerrain(file){
 		};
 
 		scene.children.forEach((child, i)=>{
-			if (i>6 || child.name === 'settlementP' || child.name === 'forestP'  || child.name === 'cityP' || child.name === 'bridgeP'|| child.name === 'boatP'){
+			if (i>7 || child.name === 'settlementP' || child.name === 'forestP'  || child.name === 'cityP' || child.name === 'bridgeP'|| child.name === 'boatP'){
 				scene.remove(child);
 			}
 		});
@@ -112,10 +112,19 @@ function extractData(image){
 
 function onTerrainThumb(event){
 	//event.preventDefault();
-	console.log(event.target.value);
+	//console.log(event.target.value);
 	var file = event.target.value;
 	//var file = '../terrain/02.jpg';
 	addTerrain(file);
+
+};
+
+function saveTerrain(event){
+	//event.preventDefault();
+	//console.log(event.target.value);
+	alert('this is in the works!');
+
+	let imgPt = plane.geometry.vertices;
 
 };
 
